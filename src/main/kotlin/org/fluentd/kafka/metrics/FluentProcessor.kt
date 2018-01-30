@@ -35,7 +35,7 @@ class FluentProcessor(registry: MetricsRegistry?,
             val suffix = generateSuffix("counter", name)
             val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Name"] = suffix
+            addMetadata(name, map)
             map["Counter"] = counter.count()
             if (timestamp != null) {
                 fluency.emit(tag, timestamp, map)
@@ -50,7 +50,7 @@ class FluentProcessor(registry: MetricsRegistry?,
             val suffix = generateSuffix("meter", name)
             val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Name"] = suffix
+            addMetadata(name, map)
             map["Count"] = meter.count()
             map["MeanRate"] = meter.meanRate()
             map["FifteenMinuteRate"] = meter.fifteenMinuteRate()
@@ -69,7 +69,7 @@ class FluentProcessor(registry: MetricsRegistry?,
             val suffix = generateSuffix("histogram", name)
             val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Name"] = suffix
+            addMetadata(name, map)
             map["Count"] = histogram.count()
             map["Max"] = histogram.max()
             map["Mean"] = histogram.mean()
@@ -94,7 +94,7 @@ class FluentProcessor(registry: MetricsRegistry?,
             val suffix = generateSuffix("timer", name)
             val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Name"] = suffix
+            addMetadata(name, map)
             map["Count"] = timer.count()
             map["MeanRate"] = timer.meanRate()
             map["FifteenMinuteRate"] = timer.fifteenMinuteRate()
@@ -118,7 +118,7 @@ class FluentProcessor(registry: MetricsRegistry?,
             val suffix = generateSuffix("gauge", name)
             val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Name"] = suffix
+            addMetadata(name, map)
             map["Value"] = gauge.value()
             if (timestamp != null) {
                 fluency.emit(tag, timestamp, map)
@@ -133,5 +133,13 @@ class FluentProcessor(registry: MetricsRegistry?,
             name != null -> "$base.${name.name}"
             else -> base
         }
+    }
+
+    private fun addMetadata(name: MetricName?, map: MutableMap<String, Any>) {
+        map["Name"] = name?.name ?: ""
+        map["MBeanName"] = name?.mBeanName ?: ""
+        map["Group"] = name?.group ?: ""
+        map["Scope"] = name?.scope ?: ""
+        map["Type"] = name?.type ?: ""
     }
 }
