@@ -32,8 +32,10 @@ class FluentProcessor(registry: MetricsRegistry?,
 
     override fun processCounter(name: MetricName?, counter: Counter?, timestamp: Long?) {
         if (counter != null) {
-            val tag = "$tagPrefix.counter"
+            val suffix = generateSuffix("counter", name)
+            val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
+            map["Name"] = suffix
             map["Counter"] = counter.count()
             if (timestamp != null) {
                 fluency.emit(tag, timestamp, map)
@@ -45,9 +47,11 @@ class FluentProcessor(registry: MetricsRegistry?,
 
     override fun processMeter(name: MetricName?, meter: Metered?, timestamp: Long?) {
         if (meter != null) {
-            val tag = "$tagPrefix.meter"
+            val suffix = generateSuffix("meter", name)
+            val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
-            map["Counter"] = meter.count()
+            map["Name"] = suffix
+            map["Count"] = meter.count()
             map["MeanRate"] = meter.meanRate()
             map["FifteenMinuteRate"] = meter.fifteenMinuteRate()
             map["FiveMinuteRate"] = meter.fiveMinuteRate()
@@ -62,8 +66,10 @@ class FluentProcessor(registry: MetricsRegistry?,
 
     override fun processHistogram(name: MetricName?, histogram: Histogram?, timestamp: Long?) {
         if (histogram != null) {
-            val tag = "$tagPrefix.histogram"
+            val suffix = generateSuffix("histogram", name)
+            val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
+            map["Name"] = suffix
             map["Count"] = histogram.count()
             map["Max"] = histogram.max()
             map["Mean"] = histogram.mean()
@@ -85,8 +91,10 @@ class FluentProcessor(registry: MetricsRegistry?,
 
     override fun processTimer(name: MetricName?, timer: Timer?, timestamp: Long?) {
         if (timer != null) {
-            val tag = "$tagPrefix.timer"
+            val suffix = generateSuffix("timer", name)
+            val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
+            map["Name"] = suffix
             map["Count"] = timer.count()
             map["MeanRate"] = timer.meanRate()
             map["FifteenMinuteRate"] = timer.fifteenMinuteRate()
@@ -107,14 +115,23 @@ class FluentProcessor(registry: MetricsRegistry?,
 
     override fun processGauge(name: MetricName?, gauge: Gauge<*>?, timestamp: Long?) {
         if (gauge != null) {
-            val tag = "$tagPrefix.gauge"
+            val suffix = generateSuffix("gauge", name)
+            val tag = "$tagPrefix.$suffix"
             val map = mutableMapOf<String, Any>()
+            map["Name"] = suffix
             map["Value"] = gauge.value()
             if (timestamp != null) {
                 fluency.emit(tag, timestamp, map)
             } else {
                 fluency.emit(tag, map)
             }
+        }
+    }
+
+    private fun generateSuffix(base: String, name: MetricName?): String {
+        return when {
+            name != null -> "$base.${name.name}"
+            else -> base
         }
     }
 }
